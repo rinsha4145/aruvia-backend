@@ -1,22 +1,19 @@
-import express, { response } from 'express';
+import express from 'express';
 import dotenv from 'dotenv';
 import { connectDB } from './config/db.js';
-import productRoutes from "./routes/product.route.js"
+import productRoutes from './routes/product.route.js';
 
-
-dotenv.config();
+dotenv.config(); // load .env first
 
 const app = express();
+const PORT = process.env.PORT || 5000;
 
-app.use(express.json()) // allows json data
+app.use(express.json());
+console.log("MONGO_URI:", process.env.MONGO_URI);
 
-app.use("/api/products",productRoutes)
+app.use('/api/products', productRoutes);
 
-// Hrzdp8Nfv32zodm7
-
-// mongodb+srv://falahmkba:<db_password>@cluster0.tgbzjmp.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0
-
-app.listen(3000, () => {
-    connectDB();
-    console.log("server started at http://localhost:3000");    
-})
+app.listen(PORT, async () => {
+  await connectDB(); // make sure to await it
+  console.log(`Server started at http://localhost:${PORT}`);
+});
