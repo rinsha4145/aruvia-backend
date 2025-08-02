@@ -1,7 +1,7 @@
-const mongoose = require("mongoose");
+import mongoose from "mongoose";
 
 const userSchema = new mongoose.Schema({
-  name: { type: String, required: true, trim: true },
+  name: { type: String, trim: true },
   email: {
     type: String,
     required: true,
@@ -9,17 +9,18 @@ const userSchema = new mongoose.Schema({
     lowercase: true,
     match: /.+\@.+\..+/,
   },
-  password: { type: String, required: true },
-  phone: { type: Number, required: true },
+  password: { type: String,  },
+  phone: { type: Number,  },
   address: {
-    street: { type: String, required: true },
-    city: { type: String, required: true },
-    state: { type: String, required: true },
-    postalCode: { type: String, required: true },
-    country: { type: String, required: true, default: "India" },
-    phone: { type: String, required: true },
+    street: { type: String,  },
+    city: { type: String,  },
+    state: { type: String,  },
+    postalCode: { type: String,  },
+    country: { type: String,  default: "India" },
     landmark: { type: String },
   },
+  
 });
 
-module.exports = mongoose.model("User", userSchema);
+const User= mongoose.model("User", userSchema);
+export default User
