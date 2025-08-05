@@ -13,11 +13,9 @@ const PORT = process.env.PORT || 5000;
 
 app.use(express.json());
 // console.log("MONGO_URI:", process.env.MONGO_URI);
-app.use(cors(
-  {origin:process.env.URL_FRONTEND,
-    credentials:true
-  }
-))
+app.use(cors({
+  origin: '*'
+}));
 app.use('/api/auth', authRoutes);
 app.use('/api/products', productRoutes);
 app.use('/api/cart', cartRoutes);
