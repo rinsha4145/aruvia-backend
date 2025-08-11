@@ -10,16 +10,6 @@ const userSchema = new mongoose.Schema({
     match: /.+\@.+\..+/,
   },
   password: { type: String,  },
-  phoneNumber: { type: Number, },
-  address: {
-    alterPhoneNumber: { type: Number, },
-    street: { type: String,  },
-    city: { type: String,  },
-    state: { type: String,  },
-    postalCode: { type: String,  },
-    country: { type: String,  default: "India" },
-    landmark: { type: String },
-  },
   
 });
 
