@@ -11,6 +11,7 @@ const orderSchema=new mongoose.Schema({
     lowercase: true,
     match: /.+\@.+\..+/,
   },
+  
   phoneNumber: { type: Number, },
     street: { type: String,  },
     city: { type: String,  },
@@ -19,6 +20,7 @@ const orderSchema=new mongoose.Schema({
     country: { type: String,  default: "India" },
     landmark: { type: String },
   },
+  description: { type: String, trim: true },
     products:[{
         productId : {type:mongoose.Schema.ObjectId,ref:'Products',required:true},
         quantity:{type:Number,required:true,default:1}

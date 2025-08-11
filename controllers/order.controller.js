@@ -81,7 +81,7 @@ export const createOrder = async (req, res) => {
       key_secret: process.env.RAZORPAY_KEY_SECRET,
     });
 
-    const { userID, products, totalAmount, address } = req.body;
+    const { userID, products, totalAmount, address,description } = req.body;
 
     
 
@@ -160,6 +160,7 @@ export const createOrder = async (req, res) => {
       user: userID || null,
       products: normalizedProducts,
       totalAmount,
+      description,
       address: {
         name,
         email,
