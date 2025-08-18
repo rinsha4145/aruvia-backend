@@ -9,7 +9,7 @@ import authRoutes from './routes/auth.route.js';
  import cors from "cors";
 
 dotenv.config(); // load .env first
-
+connectDB(); 
 const app = express();
 const PORT = process.env.PORT || 5000;
 
@@ -26,7 +26,7 @@ app.use('/api/order', orderRoutes);
 
 
 
-app.listen(PORT, async () => {
-  await connectDB(); // make sure to await it
+app.listen(PORT, () => {
+   // make sure to await it
   console.log(`Server started at http://localhost:${PORT}`);
 });
