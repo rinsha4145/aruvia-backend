@@ -2,24 +2,48 @@ import Razorpay from 'razorpay';
 import { v4 as uuidv4 } from 'uuid';
 import Order from '../models/order.model.js';
 import Cart from '../models/cart.model.js';
-//get all orders
-export const getAllOrders = async (req, res,next) => {
-    const userId = req.user.id;
-    if (!userId) {
-        return res.status(400).json({
-            success: false,
-            message: "User ID is required",
-        });
+//get orders 
+export const getAllOrders = async (req, res, next) => {
+  try {
+    // ✅Pagination
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+    const skip = (page - 1) * limit;
 
+    //  Filtering
+    const filter = {};
+    if (req.query.paymentStatus) {
+      filter.paymentStatus = req.query.paymentStatus;
     }
-    
-    const allOrders = await Order.find({ userID: userId }).populate("products.productId").populate('userID');
-    console.log(allOrders)
+
+    const allOrders = await Order.find(filter)
+      .populate("products.productId")
+      .populate("user")
+      .skip(skip)
+      .limit(limit);
+
+    const totalOrders = await Order.countDocuments(filter);
+
     if (!allOrders || allOrders.length === 0) {
-        return res.status(404).json({success: "false", message: "No orders found for this user"})
+      return res
+        .status(404)
+        .json({ success: false, message: "No orders found" });
     }
-    res.status(200).json({allOrders})
-}
+
+    res.status(200).json({
+      success: true,
+      count: allOrders.length,
+      totalOrders,
+      currentPage: page,
+      totalPages: Math.ceil(totalOrders / limit),
+      orders: allOrders,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+
 
 // export const createOrder = async (req, res) => {
 //   try {

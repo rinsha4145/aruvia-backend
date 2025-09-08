@@ -27,6 +27,5 @@ app.use('/api/order', orderRoutes);
 
 
 app.listen(PORT, () => {
-   // make sure to await it
   console.log(`Server started at http://localhost:${PORT}`);
 });

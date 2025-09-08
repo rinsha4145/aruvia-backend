@@ -1,7 +1,7 @@
 import  mongoose from 'mongoose'
 
 const orderSchema=new mongoose.Schema({
-    user:{type:mongoose.Schema.ObjectId,ref:'Users'},
+    user:{type:mongoose.Schema.ObjectId,ref:'User'},
     address: {
     name: { type: String, trim: true },
      email: {
@@ -22,7 +22,7 @@ const orderSchema=new mongoose.Schema({
   },
   description: { type: String, trim: true },
     products:[{
-        productId : {type:mongoose.Schema.ObjectId,ref:'Products',required:true},
+        productId : {type:mongoose.Schema.ObjectId,ref:'Product',required:true},
         quantity:{type:Number,required:true,default:1}
     }],
     purchaseDate:{type:Date,default:Date.now},
