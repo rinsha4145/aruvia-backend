@@ -2,6 +2,7 @@ import Razorpay from 'razorpay';
 import { v4 as uuidv4 } from 'uuid';
 import Order from '../models/order.model.js';
 import Cart from '../models/cart.model.js';
+import mongoose from 'mongoose';
 //get orders 
 export const getAllOrders = async (req, res, next) => {
   try {
@@ -16,12 +17,7 @@ export const getAllOrders = async (req, res, next) => {
       filter.paymentStatus = req.query.paymentStatus;
     }
 
-    const allOrders = await Order.find(filter)
-      .populate("products.productId")
-      .populate("user")
-      .skip(skip)
-      .limit(limit);
-
+    const allOrders = await Order.find(filter).populate("products.productId").populate("user").skip(skip).limit(limit);
     const totalOrders = await Order.countDocuments(filter);
 
     if (!allOrders || allOrders.length === 0) {
@@ -44,60 +40,6 @@ export const getAllOrders = async (req, res, next) => {
 };
 
 
-
-// export const createOrder = async (req, res) => {
-//   try {
-//     const {
-//       userID,
-//       address,
-//       products,
-//       amount,
-//       paymentStatus,
-//     } = req.body;
-
-//     // Basic validation
-//     if (!products || products.length === 0 || !amount || !address || !address.email) {
-//       return res.status(400).json({
-//         success: false,
-//         message: "Missing required fields: products, amount, or address.email",
-//       });
-//     }
-
-//     // ✅ Try to find user, or set to null if not found
-//     let validUser = null;
-//     if (userID) {
-//       const user = await User.findById(userID);
-//       if (user) {
-//         validUser = userID;
-//       }
-//     }
-
-//     // Create the order with or without userID
-//     const newOrder = new Order({
-//       userID: validUser,
-//       address,
-//       products,
-//       amount,
-//       paymentStatus,
-//     });
-
-//     await newOrder.save();
-
-//     return res.status(201).json({
-//       success: true,
-//       message: "Order placed successfully",
-//       data: newOrder,
-//     });
-
-//   } catch (error) {
-//     console.error("Error creating order:", error);
-//     return res.status(500).json({
-//       success: false,
-//       message: "Server error while creating order",
-//     });
-//   }
-// };
-
 export const createOrder = async (req, res) => {
   try {
     const razorpayInstance = new Razorpay({
@@ -106,8 +48,6 @@ export const createOrder = async (req, res) => {
     });
 
     const { userID, products, totalAmount, address,description } = req.body;
-
-    
 
     // Validate products
     if (!Array.isArray(products) || products.length === 0) {
@@ -131,10 +71,10 @@ export const createOrder = async (req, res) => {
         });
       }
 
-      normalizedProducts.push({
-        productId: product.productId,
-        quantity,
-      });
+     normalizedProducts.push({
+  productId: new mongoose.Types.ObjectId(product.productId), // ✅ force ObjectId
+  quantity,
+});
     }
 
     // Validate totalAmount
