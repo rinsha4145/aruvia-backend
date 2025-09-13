@@ -2,7 +2,7 @@ import Razorpay from 'razorpay';
 import { v4 as uuidv4 } from 'uuid';
 import Order from '../models/order.model.js';
 import Cart from '../models/cart.model.js';
-import mongoose from 'mongoose';
+import crypto from "crypto";
 //get orders 
 export const getAllOrders = async (req, res, next) => {
   try {
@@ -71,10 +71,10 @@ export const createOrder = async (req, res) => {
         });
       }
 
-     normalizedProducts.push({
-  productId: new mongoose.Types.ObjectId(product.productId), // ✅ force ObjectId
-  quantity,
-});
+      normalizedProducts.push({
+        productId: product.productId,
+        quantity,
+      });
     }
 
     // Validate totalAmount
@@ -156,69 +156,61 @@ export const createOrder = async (req, res) => {
     return res.status(500).json({ message: error.message || 'Server error' });
   }
 };
-// Payment Verification via Frontend Callback
-// exports.verifyPayment = async (req, res) => {
-//   try {
-//     const { orderId, razorpayPaymentId, razorpaySignature } = req.body;
-//    console.log('razorpayPaymentId, razorpaySignature----->',razorpayPaymentId, razorpaySignature);
-   
-//     if (!orderId) {
-//       return res.status(400).json({ message: 'Missing payment details' });
-//     }
+// Payment Verification 
 
-//     const order = await Order.findOne({ orderId });
-//     if (!order) {
-//       return res.status(404).json({ message: 'Order not found' });
-//     }
+export const verifyPayment = async (req, res) => {
+  try {
+    const { razorpay_order_id, razorpay_payment_id, razorpay_signature } = req.body;
 
-//     const attemptId = uuidv4();
+    if (!razorpay_order_id || !razorpay_payment_id || !razorpay_signature) {
+      return res.status(400).json({
+        success: false,
+        message: "Missing required payment verification parameters",
+      });
+    }
 
-//     const isVerified = verifyRazorpaySignature(orderId, razorpayPaymentId, razorpaySignature);
-//     if (!isVerified) {
-//       const failedAttempt = {
-//         attemptId,
-//         paymentId: razorpayPaymentId,
-//         status: 'Failed',
-//         error: { message: 'Signature verification failed' },
-//         timestamp: new Date()
-//       };
-//       order.paymentAttempts.push(failedAttempt);
-//       order.paymentStatus = 'Failed';
-//       await order.save();
-//       return res.status(400).json({ message: 'Signature verification failed' });
-//     }
+    // Find the order by Razorpay order ID
+    const order = await Order.findOne({
+      _id: razorpay_order_id,
+      paymentStatus: "Pending",
+    });
 
-//     // Record successful payment
-//     const paymentAttempt = {
-//       attemptId,
-//       paymentId: razorpayPaymentId,
-//       status: 'Completed',
-//       razorpayResponse: { signature: razorpaySignature, verified: true },
-//       timestamp: new Date()
-//     };
+    if (!order) {
+      return res.status(404).json({
+        success: false,
+        message: "No pending order found with this Razorpay order ID",
+      });
+    }
 
-//     order.paymentStatus = 'Completed';
-//     order.paymentId = razorpayPaymentId;
-//     order.paymentAttempts.push(paymentAttempt);
+    // Verify Razorpay signature
+    const generatedSignature = crypto
+      .createHmac("sha256", process.env.RAZORPAY_KEY_SECRET)
+      .update(`${razorpay_order_id}|${razorpay_payment_id}`)
+      .digest("hex");
 
-//     await order.save();
+    if (generatedSignature !== razorpay_signature) {
+      return res.status(401).json({
+        success: false,
+        message: "Payment verification failed - invalid signature",
+      });
+    }
 
-//     // Send confirmation email
-//     try {
-//       await sendOrderConfirmationEmail(order, order.address.email);
-//     } catch (err) {
-//       console.error('Email error:', err);
-//     }
+    // ✅ Mark order as completed
+    order.paymentStatus = "Completed";
+    order.purchaseDate = new Date();
+    await order.save();
 
-//     res.status(200).json({
-//       success: true,
-//       message: 'Payment verified successfully',
-//       attemptId,
-//       order
-//     });
-//   } catch (error) {
-//     console.error('Payment verification error:', error);
-//     res.status(500).json({ message: 'Internal server error' });
-//   }
-// };
-
+    return res.status(200).json({
+      success: true,
+      message: "Payment verified and completed successfully",
+      order,
+    });
+  } catch (error) {
+    console.error("Payment verification error:", error);
+    res.status(500).json({
+      success: false,
+      message: "Error verifying payment",
+      error: error.message,
+    });
+  }
+};

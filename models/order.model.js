@@ -27,7 +27,7 @@ const orderSchema=new mongoose.Schema({
     }],
     purchaseDate:{type:Date,default:Date.now},
     totalAmount:{type:Number,required:true},
-    paymentStatus:{type:String,enum:["Pending",'Completed',"Cancelled","Refund"],default:'Pending'},
+    paymentStatus:{type:String,enum:["Pending",'Completed'],default:'Pending'},
     shippingStatus: { type: String,enum:["Pending",'Delivered',"Processing","Cancelled"] ,default: "Pending" },
     expectedDeliveryTime: { 
         type: Date,
