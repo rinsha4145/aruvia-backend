@@ -117,7 +117,7 @@ export const createOrder = async (req, res) => {
       console.error('Razorpay API Error:', err);
       return res.status(500).json({ message: 'Error creating Razorpay order' });
     }
-
+console.log(razorpayOrder.id)
     // Create DB Order
     const newOrder = new Order({
       orderId: razorpayOrder.id,
