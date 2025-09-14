@@ -171,7 +171,7 @@ export const verifyPayment = async (req, res) => {
 
     // Find the order by Razorpay order ID
     const order = await Order.findOne({
-      _id: razorpay_order_id,
+      orderId: razorpay_order_id,
       paymentStatus: "Pending",
     });
 
