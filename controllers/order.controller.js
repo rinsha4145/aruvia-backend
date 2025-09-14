@@ -17,7 +17,7 @@ export const getAllOrders = async (req, res, next) => {
       filter.paymentStatus = req.query.paymentStatus;
     }
 
-    const allOrders = await Order.find(filter).populate("products.productId").populate("user").skip(skip).limit(limit);
+    const allOrders = await Order.find(filter).populate("products.productId").populate("user").sort({ purchaseDate: -1 }).skip(skip).limit(limit);
     const totalOrders = await Order.countDocuments(filter);
 
     if (!allOrders || allOrders.length === 0) {
