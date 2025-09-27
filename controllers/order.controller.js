@@ -214,3 +214,44 @@ export const verifyPayment = async (req, res) => {
     });
   }
 };
+
+// RAZOR PAY WEBHOOK HANDLER
+export const razorpayWebhook = async (req, res) => {
+  try {
+    const webhookSecret = process.env.RAZORPAY_WEBHOOK_SECRET;
+    const signature = req.headers["x-razorpay-signature"];
+
+    // ✅ Verify signature
+    const shasum = crypto.createHmac("sha256", webhookSecret);
+    shasum.update(req.body); // raw body, not parsed JSON
+    const digest = shasum.digest("hex");
+
+    if (digest !== signature) {
+      return res.status(400).json({ success: false, message: "Invalid webhook signature" });
+    }
+
+    // ✅ Parse the event
+    const webhookData = JSON.parse(req.body.toString());
+    const event = webhookData.event;
+
+    if (event === "payment.captured") {
+      const payment = webhookData.payload.payment.entity;
+
+      // Find the order using Razorpay Order ID
+      const order = await Order.findOne({ orderId: payment.order_id });
+
+      if (order) {
+        order.paymentStatus = "Completed";
+        order.purchaseDate = new Date();
+        order.razorpayPaymentId = payment.id;
+        await order.save();
+        console.log(`✅ Order ${order._id} marked as Completed`);
+      }
+    }
+
+    res.status(200).json({ success: true, message: "Webhook received" });
+  } catch (error) {
+    console.error("Webhook Error:", error);
+    res.status(500).json({ success: false, message: "Webhook handling failed" });
+  }
+};
