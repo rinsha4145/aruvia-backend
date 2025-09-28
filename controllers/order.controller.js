@@ -3,7 +3,8 @@ import { v4 as uuidv4 } from 'uuid';
 import Order from '../models/order.model.js';
 import Cart from '../models/cart.model.js';
 import crypto from "crypto";
-//get orders 
+
+//get orders only the payment is completed 
 export const getAllOrders = async (req, res, next) => {
   try {
     // ✅Pagination
@@ -11,19 +12,27 @@ export const getAllOrders = async (req, res, next) => {
     const limit = parseInt(req.query.limit) || 10;
     const skip = (page - 1) * limit;
 
-    //  Filtering
-    const filter = {};
-    if (req.query.paymentStatus) {
-      filter.paymentStatus = req.query.paymentStatus;
+    // filter only completed orders
+    const filter = { paymentStatus: "Completed" };
+
+    // If you want to add more filters later
+    if (req.query.userId) {
+      filter.user = req.query.userId;
     }
 
-    const allOrders = await Order.find(filter).populate("products.productId").populate("user").sort({ purchaseDate: -1 }).skip(skip).limit(limit);
+    const allOrders = await Order.find(filter)
+      .populate("products.productId")
+      .populate("user")
+      .sort({ purchaseDate: -1 })
+      .skip(skip)
+      .limit(limit);
+
     const totalOrders = await Order.countDocuments(filter);
 
     if (!allOrders || allOrders.length === 0) {
       return res
         .status(404)
-        .json({ success: false, message: "No orders found" });
+        .json({ success: false, message: "No completed orders found" });
     }
 
     res.status(200).json({
@@ -38,7 +47,6 @@ export const getAllOrders = async (req, res, next) => {
     next(error);
   }
 };
-
 
 export const createOrder = async (req, res) => {
   try {
