@@ -7,7 +7,7 @@ router
 .get("/", getAllOrders)
 .post("/createorder", createOrder)
 .post('/verifyPayment', verifyPayment)
-.post("/webhook", express.raw({ type: "application/json" }), razorpayWebhook);
+// .post("/webhook", express.raw({ type: "application/json" }), razorpayWebhook);
 
 
 export default router;
